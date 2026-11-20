@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phenolics & Antioxidant Assay Calculator</title>
+<meta name="description" content="Browser-based calculator for TPC, TFC, tannins, FRAP, DPPH, ABTS, H2O2 and hydroxyl radical scavenging assays.">
+<style>
+:root{--bg:#f6f8fa;--card:#fff;--ink:#1f2328;--mute:#59636e;--line:#d1d9e0;--acc:#0b5cad;--accink:#fff;--inp:#fff8dc;--res:#e6f4ea;--warn:#9a6700;--bad:#cf222e;--pt:#0b5cad;--pt2:#bc4c00;--fit:#cf222e}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--card:#161b22;--ink:#e6edf3;--mute:#9198a1;--line:#30363d;--acc:#58a6ff;--accink:#0d1117;--inp:#2a2410;--res:#12261a;--warn:#d29922;--bad:#f85149;--pt:#58a6ff;--pt2:#f0883e;--fit:#f85149}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{padding:18px 16px 8px;max-width:1200px;margin:0 auto}
+h1{font-size:20px;margin:0 0 2px}
+h2{font-size:16px;margin:0 0 4px}
+h3{font-size:13px;margin:4px 0 8px;font-weight:600;color:var(--mute)}
+td input{width:64px}td input.t{width:120px}
+.sub{color:var(--mute);margin:0}
+.bar{max-width:1200px;margin:0 auto;padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+nav{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0}
+nav button,.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:6px;cursor:pointer}
+nav button[aria-selected=true]{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.btn:hover,nav button:hover{border-color:var(--acc)}
+.btn.sm{padding:2px 8px;font-size:12px}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+main{max-width:1200px;margin:0 auto;padding:0 16px 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:3px 4px;text-align:center;white-space:nowrap}
+th{background:var(--bg);font-weight:600;font-size:12px}
+input{font:inherit;color:var(--ink);background:var(--inp);border:1px solid var(--line);border-radius:4px;padding:3px 5px;width:78px;text-align:right}
+input.t{text-align:left;width:130px}
+input:focus{outline:2px solid var(--acc);outline-offset:-1px}
+td.o{background:var(--res);font-variant-numeric:tabular-nums}
+td.o.b{font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;margin:6px 0}
+.kv b{font-weight:600}
+.kv .v{background:var(--res);padding:2px 8px;border-radius:4px;font-variant-numeric:tabular-nums;min-width:90px}
+.mute{color:var(--mute)}
+.warn{color:var(--warn)}
+.row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:6px 0}
+.row label{display:flex;gap:6px;align-items:center}
+svg{width:100%;height:auto;max-width:560px;display:block}
+svg text{fill:var(--mute);font-size:11px}
+svg .ax{stroke:var(--line);stroke-width:1}
+svg .gr{stroke:var(--line);stroke-width:.5;opacity:.6}
+svg .pt{fill:var(--pt)}
+svg .fit{stroke:var(--fit);stroke-width:1.6;fill:none}
+svg .h50{stroke:var(--mute);stroke-dasharray:4 3;stroke-width:1}
+svg .ln{stroke-width:1.8}
+svg .ln.s1,svg .eb.s1{stroke:var(--pt)}svg .ln.s2,svg .eb.s2{stroke:var(--pt2)}
+svg .mk.s1,svg .bar.s1{fill:var(--pt)}svg .mk.s2,svg .bar.s2{fill:var(--pt2)}
+svg .eb{stroke-width:1.2}svg .eb2{stroke:var(--ink);stroke-width:1.4}
+details{margin-top:8px}
+summary{cursor:pointer;font-weight:600}
+code{background:var(--bg);padding:1px 4px;border-radius:3px}
+footer{max-width:1200px;margin:0 auto;padding:0 16px 30px;color:var(--mute);font-size:12px}
+@media print{nav,.tools,.btn,footer details{display:none!important}body{background:#fff}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Phenolics &amp; Antioxidant Assay Calculator</h1>
+  <p class="sub">TPC · TFC · Tannins · FRAP · DPPH · ABTS · H<sub>2</sub>O<sub>2</sub> · OH radical &mdash; runs entirely in your browser; nothing is uploaded. Inputs are saved locally on this device.</p>
+</header>
+<div class="bar">
+  <nav id="tabs" role="tablist"></nav>
+  <div class="tools">
+    <button class="btn" data-act="example">Load example data</button>
+    <button class="btn" data-act="clear">Clear all</button>
+    <button class="btn" data-act="csv">Export CSV</button>
+    <button class="btn" data-act="print">Print / PDF</button>
+  </div>
+</div>
+<main id="view"></main>
+<footer>
+  <details><summary>Formulas &amp; notes</summary>
+    <ul>
+      <li>Standard curve: <code>Abs = m·Conc + c</code> by least squares (R² shown). Test-solution Conc = (Abs − blank − c) / m.</li>
+      <li>Content per g extract = Conc × DF × V(mL) / W(mg). (µg/mL × mL / mg = mg/g; µM × mL / mg = µmol/g.)</li>
+      <li>% scavenging = (A<sub>control</sub> − (A<sub>sample</sub> − colour blank)) / A<sub>control</sub> × 100. IC<sub>50</sub> = (50 − c)/m from linear regression of mean % vs concentration — use concentrations in the linear range that bracket 50 %.</li>
+      <li>Relative potency = IC<sub>50</sub> standard / IC<sub>50</sub> sample (&gt;1 means sample is stronger than the standard).</li>
+      <li>SD is the sample standard deviation (n − 1). Typical wavelengths: TPC 765 nm, TFC 415 nm, tannins 700 nm, FRAP 593 nm, DPPH 517 nm, ABTS 734 nm, H<sub>2</sub>O<sub>2</sub> 230 nm.</li>
+      <li>The OH and H<sub>2</sub>O<sub>2</sub> formulas assume absorbance falls as scavenging rises; adapt to your protocol if it differs. Example values are placeholders, not real data.</li>
+    </ul>
+  </details>
+</footer>
+
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const num = v => { const x = parseFloat(v); return Number.isFinite(x) ? x : NaN; };
+const fin = Number.isFinite;
+const mean = a => { a = a.filter(fin); return a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN; };
+const sd = a => { a = a.filter(fin); if (a.length < 2) return NaN; const m = mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (a.length - 1)); };
+const fmt = (x, d = 2) => fin(x) ? x.toFixed(d) : "—";
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+function linreg(xs, ys) {
+  const p = []; xs.forEach((x, i) => { if (fin(x) && fin(ys[i])) p.push([x, ys[i]]); });
+  if (p.length < 2) return null;
+  const mx = mean(p.map(q => q[0])), my = mean(p.map(q => q[1]));
+  let sxx = 0, sxy = 0, syy = 0;
+  p.forEach(([x, y]) => { sxx += (x - mx) ** 2; sxy += (x - mx) * (y - my); syy += (y - my) ** 2; });
+  if (sxx === 0) return null;
+  return { m: sxy / sxx, c: my - (sxy / sxx) * mx, r2: syy === 0 ? NaN : (sxy * sxy) / (sxx * syy), n: p.length, pts: p };
+}
+
+/* ---------- assay definitions ---------- */
+const CONTENT = {
+  TPC:     { title: "Total Phenolic Content (TPC)", method: "Folin–Ciocalteu · ~765 nm", std: "Gallic acid", cu: "µg/mL", unit: "mg GAE/g extract", concs: [10,20,40,60,80,100], m: .0098, c: .015, ex: [["Extract A",[.470,.478,.465]],["Extract B",[.610,.602,.618]]] },
+  TFC:     { title: "Total Flavonoid Content (TFC)", method: "AlCl₃ colorimetric · ~415 nm", std: "Quercetin", cu: "µg/mL", unit: "mg QE/g extract", concs: [10,20,40,60,80,100], m: .0075, c: .010, ex: [["Extract A",[.350,.341,.356]],["Extract B",[.480,.489,.474]]] },
+  Tannins: { title: "Total Tannin Content", method: "Folin–Denis · ~700 nm (for vanillin-HCl use catechin / 500 nm)", std: "Tannic acid", cu: "µg/mL", unit: "mg TAE/g extract", concs: [10,20,40,60,80,100], m: .0085, c: .012, ex: [["Extract A",[.290,.301,.285]],["Extract B",[.420,.412,.431]]] },
+  FRAP:    { title: "FRAP — Ferric Reducing Antioxidant Power", method: "TPTZ · 593 nm · FeSO₄ standard", std: "FeSO4", cu: "µM", unit: "µmol Fe(II)/g extract", concs: [100,200,400,600,800,1000], m: .0012, c: .020, ex: [["Extract A",[.610,.600,.622]],["Extract B",[.820,.811,.829]]] }
+};
+const SCAV = {
+  DPPH: { title: "DPPH Radical Scavenging", method: "517 nm", std: "Ascorbic acid", ctrl: .820, sc: [20,40,60,80,100,120], sf: [.15,.28,.41,.55,.67,.78], tc: [2,4,6,8,10,12], tf: [.18,.36,.52,.70,.85,.95] },
+  ABTS: { title: "ABTS Radical Cation Scavenging", method: "734 nm", std: "Trolox", ctrl: .700, sc: [20,40,60,80,100,120], sf: [.14,.27,.40,.52,.65,.76], tc: [5,10,15,20,25,30], tf: [.16,.33,.49,.64,.78,.90] },
+  H2O2: { title: "Hydrogen Peroxide (H₂O₂) Scavenging", method: "230 nm", std: "Ascorbic acid", ctrl: .540, sc: [20,40,60,80,100,120], sf: [.12,.25,.38,.50,.62,.73], tc: [20,40,60,80,100,120], tf: [.20,.38,.55,.72,.86,.95] },
+  OH:   { title: "Hydroxyl Radical (OH) Scavenging", method: "e.g. deoxyribose 532 nm / salicylate 510 nm", std: "Mannitol", ctrl: .610, sc: [20,40,60,80,100,120], sf: [.10,.22,.35,.47,.58,.69], tc: [20,40,60,80,100,120], tf: [.12,.26,.40,.54,.66,.77] }
+};
+const TABS = ["Summary", ...Object.keys(CONTENT), ...Object.keys(SCAV)];
+const NOISE = [.004, -.003, .002];
+const r3 = x => String(Math.round(x * 1000) / 1000);
+
+/* ---------- state ---------- */
+function makeState(example) {
+  const S = {};
+  for (const [k, d] of Object.entries(CONTENT)) {
+    S[k] = {
+      blank: example ? "0" : "", unit: d.unit, stdName: d.std, cu: d.cu,
+      std: d.concs.map(c => ({ c: example ? String(c) : "", a: NOISE.map(n => example ? r3(d.m * c + d.c + n) : "") })),
+      samples: (example ? d.ex : [["", []], ["", []], ["", []]]).map(([id, a]) => ({ id, W: example ? "1" : "", V: example ? "1" : "", DF: example ? "1" : "1", a: [0, 1, 2].map(i => example ? String(a[i]) : "") }))
+    };
+  }
+  for (const [k, d] of Object.entries(SCAV)) {
+    const mk = (cs, fs) => cs.map((c, i) => ({ c: example ? String(c) : "", a: NOISE.map(n => example ? r3(d.ctrl * (1 - fs[i]) + n) : ""), cb: "" }));
+    S[k] = {
+      ctrl: NOISE.map(n => example ? r3(d.ctrl + n / 2) : ""),
+      sample: { name: example ? "Extract A" : "Sample", pts: mk(d.sc, d.sf) },
+      std: { name: d.std, pts: mk(d.tc, d.tf) }
+    };
+  }
+  return S;
+}
+const KEY = "phenolics-calc-v1";
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+if (!S || !S.TPC || !S.DPPH) S = makeState(true);
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+function setPath(obj, path, val) {
+  const p = path.split("."); let o = obj;
+  for (let i = 0; i < p.length - 1; i++) o = o[p[i]];
+  o[p[p.length - 1]] = val;
+}
+
+/* ---------- calculations ---------- */
+function calcContent(k) {
+  const s = S[k], blank = num(s.blank) || 0;
+  const stdMeans = s.std.map(r => { const m = mean(r.a.map(num)); return fin(m) ? m - blank : NaN; });
+  const fit = linreg(s.std.map(r => num(r.c)), stdMeans);
+  const samples = s.samples.map(r => {
+    const W = num(r.W), V = num(r.V), DF = fin(num(r.DF)) ? num(r.DF) : 1;
+    const reps = r.a.map(a => { const x = num(a); return fit && fit.m !== 0 && fin(x) && W > 0 && fin(V) ? ((x - blank - fit.c) / fit.m) * DF * V / W : NaN; });
+    return { reps, mean: mean(reps), sd: sd(reps) };
+  });
+  return { fit, stdMeans, samples };
+}
+function calcBlock(b, ac) {
+  const rows = b.pts.map(r => {
+    const cb = num(r.cb) || 0;
+    const reps = r.a.map(a => { const x = num(a); return fin(x) && ac > 0 ? (ac - (x - cb)) / ac * 100 : NaN; });
+    return { reps, mean: mean(reps), sd: sd(reps), c: num(r.c) };
+  });
+  const fit = linreg(rows.map(r => r.c), rows.map(r => r.mean));
+  const ic50 = fit && fit.m !== 0 ? (50 - fit.c) / fit.m : NaN;
+  const ms = rows.map(r => r.mean).filter(fin);
+  const bracket = ms.length ? (Math.min(...ms) <= 50 && Math.max(...ms) >= 50) : null;
+  return { rows, fit, ic50, bracket };
+}
+function calcScav(k) {
+  const s = S[k], ac = mean(s.ctrl.map(num));
+  const sample = calcBlock(s.sample, ac), std = calcBlock(s.std, ac);
+  const rp = fin(sample.ic50) && fin(std.ic50) && sample.ic50 !== 0 ? std.ic50 / sample.ic50 : NaN;
+  return { ac, sample, std, rp };
+}
+
+/* ---------- SVG chart ---------- */
+function ticks(a, b) {
+  const raw = (b - a) / 5 || 1, mag = 10 ** Math.floor(Math.log10(raw)), f = raw / mag;
+  const step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * mag, out = [];
+  for (let t = Math.ceil(a / step - 1e-9) * step; t <= b + 1e-9; t += step) out.push(+t.toPrecision(10));
+  return out;
+}
+function chart(pts, fit, o) {
+  if (!pts.length) return '<p class="mute">Enter data to see the plot.</p>';
+  const W = 520, H = 290, m = { l: 52, r: 14, t: 12, b: 42 };
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = 0, x1 = Math.max(...xs) * 1.05 || 1;
+  let y0 = Math.min(0, ...ys), y1 = Math.max(...ys, o.hline ?? -Infinity) * 1.06;
+  if (y1 <= y0) y1 = y0 + 1;
+  const X = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r), Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  let g = "";
+  ticks(x0, x1).forEach(t => { g += `<line class="gr" x1="${X(t)}" x2="${X(t)}" y1="${m.t}" y2="${H - m.b}"/><text x="${X(t)}" y="${H - m.b + 14}" text-anchor="middle">${t}</text>`; });
+  ticks(y0, y1).forEach(t => { g += `<line class="gr" y1="${Y(t)}" y2="${Y(t)}" x1="${m.l}" x2="${W - m.r}"/><text x="${m.l - 6}" y="${Y(t) + 4}" text-anchor="end">${t}</text>`; });
+  g += `<line class="ax" x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}"/><line class="ax" x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H - m.b}"/>`;
+  const id = "c" + Math.random().toString(36).slice(2, 7);
+  g += `<clipPath id="${id}"><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}"/></clipPath><g clip-path="url(#${id})">`;
+  if (o.hline != null) g += `<line class="h50" x1="${m.l}" x2="${W - m.r}" y1="${Y(o.hline)}" y2="${Y(o.hline)}"/>`;
+  if (fit) g += `<line class="fit" x1="${X(x0)}" y1="${Y(fit.m * x0 + fit.c)}" x2="${X(x1)}" y2="${Y(fit.m * x1 + fit.c)}"/>`;
+  pts.forEach(p => { g += `<circle class="pt" cx="${X(p[0])}" cy="${Y(p[1])}" r="4"/>`; });
+  g += `</g><text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">${esc(o.xl)}</text>`;
+  g += `<text transform="translate(12 ${(m.t + H - m.b) / 2}) rotate(-90)" text-anchor="middle">${esc(o.yl)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.yl)} versus ${esc(o.xl)}">${g}</svg>`;
+}
+
+/* dose-response: several series (mean ± SD), colour + marker shape differ */
+function multiChart(series, o) {
+  const all = series.flatMap(s => s.pts);
+  if (!all.length) return '<p class="mute">Enter data to see the plot.</p>';
+  const W = 520, H = 310, m = { l: 52, r: 14, t: 30, b: 42 };
+  const x0 = 0, x1 = Math.max(...all.map(p => p[0])) * 1.05 || 1;
+  const y0 = Math.min(0, ...all.map(p => p[1])), y1 = Math.max(100, ...all.map(p => p[1] + (fin(p[2]) ? p[2] : 0))) * 1.04;
+  const X = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r), Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  let g = "";
+  ticks(x0, x1).forEach(t => { g += `<line class="gr" x1="${X(t)}" x2="${X(t)}" y1="${m.t}" y2="${H - m.b}"/><text x="${X(t)}" y="${H - m.b + 14}" text-anchor="middle">${t}</text>`; });
+  ticks(y0, y1).forEach(t => { g += `<line class="gr" y1="${Y(t)}" y2="${Y(t)}" x1="${m.l}" x2="${W - m.r}"/><text x="${m.l - 6}" y="${Y(t) + 4}" text-anchor="end">${t}</text>`; });
+  g += `<line class="ax" x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}"/><line class="ax" x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H - m.b}"/>`;
+  g += `<line class="h50" x1="${m.l}" x2="${W - m.r}" y1="${Y(50)}" y2="${Y(50)}"/>`;
+  series.forEach((s, si) => {
+    const pts = [...s.pts].sort((a, b) => a[0] - b[0]), c = si ? "s2" : "s1";
+    g += `<polyline class="ln ${c}" fill="none" points="${pts.map(p => `${X(p[0])},${Y(p[1])}`).join(" ")}"/>`;
+    pts.forEach(p => {
+      if (fin(p[2]) && p[2] > 0) g += `<line class="eb ${c}" x1="${X(p[0])}" x2="${X(p[0])}" y1="${Y(p[1] - p[2])}" y2="${Y(p[1] + p[2])}"/>`;
+      g += si ? `<rect class="mk ${c}" x="${X(p[0]) - 4}" y="${Y(p[1]) - 4}" width="8" height="8"/>` : `<circle class="mk ${c}" cx="${X(p[0])}" cy="${Y(p[1])}" r="4.5"/>`;
+    });
+    const lx = m.l + 8 + si * 170;
+    g += si ? `<rect class="mk ${c}" x="${lx}" y="9" width="8" height="8"/>` : `<circle class="mk ${c}" cx="${lx + 4}" cy="13" r="4.5"/>`;
+    g += `<text x="${lx + 14}" y="17" style="fill:var(--ink)">${esc(s.name)}</text>`;
+  });
+  g += `<text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">${esc(o.xl)}</text><text transform="translate(12 ${(m.t + H - m.b) / 2}) rotate(-90)" text-anchor="middle">${esc(o.yl)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.yl)} versus ${esc(o.xl)}">${g}</svg>`;
+}
+/* horizontal bars with SD whiskers; items: {label,v,sd,cls} */
+function bars(items, o) {
+  items = items.filter(i => fin(i.v));
+  if (!items.length) return '<p class="mute">No results yet.</p>';
+  const W = 520, rowH = 28, m = { l: 150, r: 24, t: 8, b: 34 }, H = m.t + m.b + rowH * items.length;
+  const max = Math.max(...items.map(i => i.v + (fin(i.sd) ? i.sd : 0))) * 1.08 || 1;
+  const X = v => m.l + v / max * (W - m.l - m.r);
+  let g = "";
+  ticks(0, max).forEach(t => { g += `<line class="gr" x1="${X(t)}" x2="${X(t)}" y1="${m.t}" y2="${H - m.b}"/><text x="${X(t)}" y="${H - m.b + 14}" text-anchor="middle">${t}</text>`; });
+  g += `<line class="ax" x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H - m.b}"/>`;
+  items.forEach((it, i) => {
+    const y = m.t + i * rowH + 5, c = it.cls || "s1";
+    g += `<text x="${m.l - 6}" y="${y + 12}" text-anchor="end" style="fill:var(--ink)">${esc(it.label)}</text><rect class="bar ${c}" x="${m.l}" y="${y}" width="${Math.max(1, X(it.v) - m.l)}" height="16"/>`;
+    if (fin(it.sd) && it.sd > 0) g += `<line class="eb2" x1="${X(it.v - it.sd)}" x2="${X(it.v + it.sd)}" y1="${y + 8}" y2="${y + 8}"/><line class="eb2" x1="${X(it.v + it.sd)}" x2="${X(it.v + it.sd)}" y1="${y + 3}" y2="${y + 13}"/>`;
+  });
+  g += `<text x="${(m.l + W - m.r) / 2}" y="${H - 4}" text-anchor="middle">${esc(o.xl)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.xl)}">${g}</svg>`;
+}
+
+/* ---------- rendering ---------- */
+const view = $("#view");
+let cur = TABS.includes(sessionStorage.getItem("tab")) ? sessionStorage.getItem("tab") : "Summary";
+const inp = (p, v, cls = "") => `<input class="${cls}" data-p="${p}" value="${esc(v)}" ${cls === "t" ? 'type="text"' : 'inputmode="decimal"'} autocomplete="off">`;
+const O = (name, cls = "") => `<td class="o ${cls}" data-o="${name}">—</td>`;
+const out = (name, html, asHtml) => { const el = view.querySelector(`[data-o="${name}"]`); if (el) asHtml ? (el.innerHTML = html) : (el.textContent = html); };
+
+function renderTabs() {
+  $("#tabs").innerHTML = TABS.map(t => `<button role="tab" aria-selected="${t === cur}" data-tab="${t}">${t === "H2O2" ? "H₂O₂" : t}</button>`).join("");
+}
+function renderContent(k) {
+  const d = CONTENT[k], s = S[k];
+  view.innerHTML = `
+  <div class="card"><h2>${d.title}</h2><p class="sub">${d.method}. Enter your readings in the yellow cells; green cells are calculated.</p>
+    <div class="row">
+      <label>Reagent blank Abs ${inp(`${k}.blank`, s.blank)}</label>
+      <label>Standard ${inp(`${k}.stdName`, s.stdName, "t")}</label>
+      <label>Conc unit ${inp(`${k}.cu`, s.cu, "t")}</label>
+      <label>Output unit ${inp(`${k}.unit`, s.unit, "t")}</label>
+    </div></div>
+  <div class="grid">
+    <div class="card"><h3>1 · Standard curve — <span data-o="sn"></span></h3>
+      <div class="tw"><table><thead><tr><th>Conc (<span data-o="cu"></span>)</th><th>Abs 1</th><th>Abs 2</th><th>Abs 3</th><th>Mean (blank-corr.)</th><th></th></tr></thead><tbody>
+      ${s.std.map((r, i) => `<tr><td>${inp(`${k}.std.${i}.c`, r.c)}</td>${[0, 1, 2].map(j => `<td>${inp(`${k}.std.${i}.a.${j}`, r.a[j])}</td>`).join("")}${O("sm" + i)}<td><button class="btn sm" data-act="rm-std" data-i="${i}" title="Remove row">✕</button></td></tr>`).join("")}
+      </tbody></table></div>
+      <p><button class="btn sm" data-act="add-std">+ Add point</button></p>
+      <div class="kv"><b>Slope (m)</b><span class="v" data-o="m">—</span><b>Intercept (c)</b><span class="v" data-o="c">—</span><b>R²</b><span class="v" data-o="r2">—</span><b>Equation</b><span class="v" data-o="eq">—</span></div>
+      <p class="warn" data-o="warn"></p>
+      <div data-o="chart"></div>
+    </div>
+    <div class="card" style="grid-column:1/-1"><h3>2 · Samples</h3>
+      <div class="tw"><table><thead><tr><th>Sample ID</th><th>W (mg)</th><th>V (mL)</th><th>DF</th><th>Abs 1</th><th>Abs 2</th><th>Abs 3</th><th>Rep 1</th><th>Rep 2</th><th>Rep 3</th><th>Mean (<span data-o="unit"></span>)</th><th>SD</th><th></th></tr></thead><tbody>
+      ${s.samples.map((r, i) => `<tr><td>${inp(`${k}.samples.${i}.id`, r.id, "t")}</td><td>${inp(`${k}.samples.${i}.W`, r.W)}</td><td>${inp(`${k}.samples.${i}.V`, r.V)}</td><td>${inp(`${k}.samples.${i}.DF`, r.DF)}</td>${[0, 1, 2].map(j => `<td>${inp(`${k}.samples.${i}.a.${j}`, r.a[j])}</td>`).join("")}${[0, 1, 2].map(j => O(`s${i}r${j}`)).join("")}${O(`s${i}m`, "b")}${O(`s${i}sd`)}<td><button class="btn sm" data-act="rm-s" data-i="${i}" title="Remove row">✕</button></td></tr>`).join("")}
+      </tbody></table></div>
+      <p><button class="btn sm" data-act="add-s">+ Add sample</button></p>
+      <p class="mute">W = mg of extract dissolved in V mL. Content = Conc × DF × V / W. Keep sample absorbances inside the standard-curve range; dilute and enter DF otherwise.</p>
+    </div></div>`;
+  updateContent(k);
+}
+function updateContent(k) {
+  const s = S[k], r = calcContent(k);
+  out("sn", s.stdName); out("cu", s.cu); out("unit", s.unit);
+  r.stdMeans.forEach((v, i) => out("sm" + i, fmt(v, 3)));
+  out("m", r.fit ? fmt(r.fit.m, 5) : "—"); out("c", r.fit ? fmt(r.fit.c, 5) : "—"); out("r2", r.fit ? fmt(r.fit.r2, 4) : "—");
+  out("eq", r.fit ? `y = ${fmt(r.fit.m, 5)}x ${r.fit.c < 0 ? "−" : "+"} ${fmt(Math.abs(r.fit.c), 5)}` : "—");
+  out("warn", !r.fit ? "Enter at least two standards to fit the curve." : r.fit.r2 < 0.99 ? "Check: R² is below 0.99." : "");
+  out("chart", chart(r.fit ? r.fit.pts : [], r.fit, { xl: `${s.stdName} (${s.cu})`, yl: "Absorbance (blank-corrected)" }), true);
+  r.samples.forEach((x, i) => { x.reps.forEach((v, j) => out(`s${i}r${j}`, fmt(v))); out(`s${i}m`, fmt(x.mean)); out(`s${i}sd`, fmt(x.sd)); });
+}
+function blockHtml(k, who) {
+  const b = S[k][who];
+  return `<div class="card"><h3>${who === "sample" ? "Sample" : "Standard"} — ${inp(`${k}.${who}.name`, b.name, "t")}</h3>
+  <div class="tw"><table><thead><tr><th>Conc (µg/mL)</th><th>Abs 1</th><th>Abs 2</th><th>Abs 3</th><th>Colour blank</th><th>% 1</th><th>% 2</th><th>% 3</th><th>Mean %</th><th>SD</th><th></th></tr></thead><tbody>
+  ${b.pts.map((r, i) => `<tr><td>${inp(`${k}.${who}.pts.${i}.c`, r.c)}</td>${[0, 1, 2].map(j => `<td>${inp(`${k}.${who}.pts.${i}.a.${j}`, r.a[j])}</td>`).join("")}<td>${inp(`${k}.${who}.pts.${i}.cb`, r.cb)}</td>${[0, 1, 2].map(j => O(`${who}${i}p${j}`)).join("")}${O(`${who}${i}m`, "b")}${O(`${who}${i}sd`)}<td><button class="btn sm" data-act="rm-pt" data-who="${who}" data-i="${i}" title="Remove row">✕</button></td></tr>`).join("")}
+  </tbody></table></div>
+  <p><button class="btn sm" data-act="add-pt" data-who="${who}">+ Add concentration</button></p>
+  <div class="kv"><b>Slope</b><span class="v" data-o="${who}-m">—</span><b>Intercept</b><span class="v" data-o="${who}-c">—</span><b>R²</b><span class="v" data-o="${who}-r2">—</span><b>IC₅₀ (µg/mL)</b><span class="v" data-o="${who}-ic" style="font-weight:700">—</span></div>
+  <p class="warn" data-o="${who}-warn"></p><div data-o="${who}-chart"></div></div>`;
+}
+function renderScav(k) {
+  const d = SCAV[k], s = S[k];
+  view.innerHTML = `<div class="card"><h2>${d.title}</h2><p class="sub">${d.method}. % scavenging = (A<sub>control</sub> − (A<sub>sample</sub> − colour blank)) / A<sub>control</sub> × 100.</p>
+    <h3>Control (no sample)</h3>
+    <div class="row">${[0, 1, 2].map(j => `<label>Abs ${j + 1} ${inp(`${k}.ctrl.${j}`, s.ctrl[j])}</label>`).join("")}<label>Mean <span class="kv"><span class="v" data-o="ctrl">—</span></span></label></div>
+    <div class="kv"><b>Relative potency</b><span class="v" data-o="rp" style="font-weight:700">—</span></div>
+    <p class="mute">Relative potency = IC₅₀ standard / IC₅₀ sample (&gt;1: sample stronger than the standard).</p></div>
+    <div class="card"><h3>Dose–response: sample vs standard (mean ± SD; dashed line = 50 %)</h3><div data-o="combo"></div></div>
+    <div class="grid">${blockHtml(k, "sample")}${blockHtml(k, "std")}</div>`;
+  updateScav(k);
+}
+function updateScav(k) {
+  const r = calcScav(k);
+  out("ctrl", fmt(r.ac, 3)); out("rp", fmt(r.rp, 3));
+  out("combo", multiChart(["sample", "std"].map(w => ({ name: S[cur][w].name || w, pts: r[w].rows.filter(x => fin(x.c) && fin(x.mean)).map(x => [x.c, x.mean, x.sd]) })), { xl: "Concentration (µg/mL)", yl: "% scavenging" }), true);
+  for (const who of ["sample", "std"]) {
+    const b = r[who];
+    b.rows.forEach((x, i) => { x.reps.forEach((v, j) => out(`${who}${i}p${j}`, fmt(v))); out(`${who}${i}m`, fmt(x.mean)); out(`${who}${i}sd`, fmt(x.sd)); });
+    out(`${who}-m`, b.fit ? fmt(b.fit.m, 4) : "—"); out(`${who}-c`, b.fit ? fmt(b.fit.c, 4) : "—"); out(`${who}-r2`, b.fit ? fmt(b.fit.r2, 4) : "—"); out(`${who}-ic`, fmt(b.ic50, 2));
+    out(`${who}-warn`, !b.fit ? "Enter at least two concentrations." : b.bracket === false ? "Warning: 50 % inhibition is not bracketed — IC₅₀ is extrapolated." : "");
+    out(`${who}-chart`, chart(b.fit ? b.fit.pts : [], b.fit, { xl: "Concentration (µg/mL)", yl: "% scavenging", hline: 50 }), true);
+  }
+}
+function renderSummary() {
+  let h = `<div class="card"><h2>Content assays</h2><div class="tw"><table><thead><tr><th>Assay</th><th>Sample</th><th>Mean</th><th>SD</th><th>Unit</th><th>Std R²</th></tr></thead><tbody>`;
+  for (const k of Object.keys(CONTENT)) {
+    const r = calcContent(k);
+    S[k].samples.forEach((s, i) => { h += `<tr><td>${k}</td><td>${esc(s.id) || "—"}</td><td class="o b">${fmt(r.samples[i].mean)}</td><td class="o">${fmt(r.samples[i].sd)}</td><td>${esc(S[k].unit)}</td><td class="o">${r.fit ? fmt(r.fit.r2, 4) : "—"}</td></tr>`; });
+  }
+  h += `</tbody></table></div></div><div class="card"><h2>Scavenging assays — IC₅₀ (µg/mL)</h2><div class="tw"><table><thead><tr><th>Assay</th><th>Sample IC₅₀</th><th>Standard</th><th>Standard IC₅₀</th><th>Relative potency</th></tr></thead><tbody>`;
+  for (const k of Object.keys(SCAV)) {
+    const r = calcScav(k);
+    h += `<tr><td>${k === "H2O2" ? "H₂O₂" : k}</td><td class="o b">${fmt(r.sample.ic50)}</td><td>${esc(S[k].std.name)}</td><td class="o b">${fmt(r.std.ic50)}</td><td class="o">${fmt(r.rp, 3)}</td></tr>`;
+  }
+  h += `</tbody></table></div><p class="mute">Results update automatically from the assay tabs. Use “Export CSV” for a full report.</p></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr))">`;
+  for (const k of Object.keys(CONTENT)) {
+    const r = calcContent(k);
+    h += `<div class="card"><h3>${k} (${esc(S[k].unit)})</h3>${bars(S[k].samples.map((s, i) => ({ label: s.id || `Sample ${i + 1}`, v: r.samples[i].mean, sd: r.samples[i].sd })), { xl: S[k].unit + " (mean ± SD)" })}</div>`;
+  }
+  const ic = [];
+  for (const k of Object.keys(SCAV)) { const r = calcScav(k), n = k === "H2O2" ? "H₂O₂" : k; ic.push({ label: `${n} · ${S[k].sample.name || "sample"}`, v: r.sample.ic50, cls: "s1" }, { label: `${n} · ${S[k].std.name || "std"}`, v: r.std.ic50, cls: "s2" }); }
+  h += `<div class="card" style="grid-column:1/-1"><h3>IC₅₀ comparison (µg/mL) — lower = more potent</h3>${bars(ic, { xl: "IC₅₀ (µg/mL)" })}</div></div>`;
+  view.innerHTML = h;
+}
+function show(t) {
+  cur = t; try { sessionStorage.setItem("tab", t); } catch (e) {}
+  renderTabs();
+  if (t === "Summary") renderSummary(); else if (CONTENT[t]) renderContent(t); else renderScav(t);
+}
+
+/* ---------- export ---------- */
+function toCSV() {
+  const q = v => { v = String(v ?? ""); return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+  const L = [], add = (...a) => L.push(a.map(q).join(","));
+  add("Phenolics & antioxidant assay report", new Date().toISOString().slice(0, 10)); add();
+  for (const k of Object.keys(CONTENT)) {
+    const s = S[k], r = calcContent(k);
+    add(`${k} — ${CONTENT[k].title}`); add("Standard", s.stdName, "Slope", r.fit?.m, "Intercept", r.fit?.c, "R2", r.fit?.r2);
+    add("Sample", "W (mg)", "V (mL)", "DF", "Abs1", "Abs2", "Abs3", "Rep1", "Rep2", "Rep3", `Mean (${s.unit})`, "SD");
+    s.samples.forEach((x, i) => add(x.id, x.W, x.V, x.DF, ...x.a, ...r.samples[i].reps.map(v => fin(v) ? v : ""), fin(r.samples[i].mean) ? r.samples[i].mean : "", fin(r.samples[i].sd) ? r.samples[i].sd : "")); add();
+  }
+  for (const k of Object.keys(SCAV)) {
+    const r = calcScav(k);
+    add(`${k} — ${SCAV[k].title}`); add("Control mean", fin(r.ac) ? r.ac : "");
+    for (const who of ["sample", "std"]) {
+      const b = r[who]; add(who === "sample" ? "Sample" : "Standard", S[k][who].name, "IC50 (ug/mL)", fin(b.ic50) ? b.ic50 : "", "R2", b.fit?.r2);
+      add("Conc (ug/mL)", "Abs1", "Abs2", "Abs3", "Colour blank", "%1", "%2", "%3", "Mean %", "SD");
+      S[k][who].pts.forEach((p, i) => add(p.c, ...p.a, p.cb, ...b.rows[i].reps.map(v => fin(v) ? v : ""), fin(b.rows[i].mean) ? b.rows[i].mean : "", fin(b.rows[i].sd) ? b.rows[i].sd : ""));
+    }
+    add("Relative potency (IC50 std / IC50 sample)", fin(r.rp) ? r.rp : ""); add();
+  }
+  return L.join("\n");
+}
+
+/* ---------- events ---------- */
+document.addEventListener("input", e => {
+  const p = e.target.dataset && e.target.dataset.p; if (!p) return;
+  setPath(S, p, e.target.value); save();
+  if (CONTENT[cur]) updateContent(cur); else if (SCAV[cur]) updateScav(cur);
+});
+document.addEventListener("click", e => {
+  const tb = e.target.closest("[data-tab]"); if (tb) return show(tb.dataset.tab);
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act, i = +b.dataset.i, who = b.dataset.who, s = S[cur];
+  if (a === "example") { if (confirm("Replace all current entries with example data?")) { S = makeState(true); save(); show(cur); } return; }
+  if (a === "clear") { if (confirm("Clear all entries in every assay?")) { S = makeState(false); save(); show(cur); } return; }
+  if (a === "print") return window.print();
+  if (a === "csv") {
+    const url = URL.createObjectURL(new Blob([toCSV()], { type: "text/csv" }));
+    const l = document.createElement("a"); l.href = url; l.download = "assay_results.csv"; l.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); return;
+  }
+  if (a === "add-std") s.std.push({ c: "", a: ["", "", ""] });
+  else if (a === "rm-std") s.std.splice(i, 1);
+  else if (a === "add-s") s.samples.push({ id: "", W: "", V: "", DF: "1", a: ["", "", ""] });
+  else if (a === "rm-s") s.samples.splice(i, 1);
+  else if (a === "add-pt") s[who].pts.push({ c: "", a: ["", "", ""], cb: "" });
+  else if (a === "rm-pt") s[who].pts.splice(i, 1);
+  else return;
+  save(); show(cur);
+});
+show(cur);
+</script>
+</body>
+</html>
